@@ -28,7 +28,7 @@ public abstract class FileSystemElement {
         if (this.getParent() == null) {
             return this.getName();
         }
-        return this.getName() + this.getParent().getPath();
+        return this.getName() + "/" + this.getParent().getPath();
     }
 
 }
