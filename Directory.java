@@ -43,6 +43,25 @@ public class Directory extends FileSystemElement {
         return target;
     }
 
+    public boolean move(String srcPath, String destPath) {
+        srcPath = this.validPath(srcPath);
+        destPath = this.validPath(destPath);
+        if (srcPath == null || destPath == null) {
+            return false;
+        }
+
+        FileSystemElement src = this.getElementByPath(srcPath);
+        FileSystemElement dest = this.getElementByPath(destPath);
+        if (src == null || dest == null) {
+            return false;
+        }
+
+        this.remove(destPath);
+        this.insert(destPath, src);
+        this.remove(srcPath);
+        return true;
+    }
+
     /*
      * returns true if the directory contains either a directory or file at the
      * specified relative path
@@ -52,7 +71,7 @@ public class Directory extends FileSystemElement {
         if (relativePath == null) {
             return false;
         }
-        
+
         FileSystemElement result = getElementByPath(relativePath);
         if (result == null) {
             return false;
