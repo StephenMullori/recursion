@@ -7,12 +7,12 @@ public class Directory extends FileSystemElement {
 
     }
 
-    public boolean insert(String relativePath, FileSystemElement newElement) {
-        relativePath = this.validPath(relativePath);
-        if (relativePath == null) {
+    public boolean insert(String path, FileSystemElement newElement) {
+        path = this.validPath(path);
+        if (path == null) {
             return false;
         }
-        Directory targetDir = this.getParentByPath(relativePath);
+        Directory targetDir = this.getParentByPath(path);
         if (targetDir == null) {
             return false;
         }
@@ -28,12 +28,12 @@ public class Directory extends FileSystemElement {
     }
 
     // this implementation does not account for removal of the root directory
-    public FileSystemElement remove(String relativePath) {
-        relativePath = this.validPath(relativePath);
-        if (relativePath == null) {
+    public FileSystemElement remove(String path) {
+        path = this.validPath(path);
+        if (path == null) {
             return null;
         }
-        FileSystemElement target = this.getElementByPath(relativePath);
+        FileSystemElement target = this.getElementByPath(path);
         if (target == null) {
             return null;
         }
@@ -66,7 +66,7 @@ public class Directory extends FileSystemElement {
      * returns true if the directory contains either a directory or file at the
      * specified relative path
      */
-    public boolean contains(String relativePath) {
+    public boolean exists(String relativePath) {
         relativePath = this.validPath(relativePath);
         if (relativePath == null) {
             return false;
@@ -82,11 +82,6 @@ public class Directory extends FileSystemElement {
     // this method validates and normalizes a path. This is a helper function and
     // not part of the public api.
     private String validPath(String path) {
-        // paths may not be empty
-        path = path.strip();
-        if (path.equals("")) {
-            return null;
-        }
 
         // paths may not have leading or trailing slashes
         if (path.charAt(0) == '/' || path.charAt(path.length() - 1) == '/') {
@@ -119,14 +114,15 @@ public class Directory extends FileSystemElement {
         for (FileSystemElement element : this.contents) {
             if (element.name.equals(dirName)) {
                 target = element;
+                break;
             }
         }
 
-        if (target != null && target instanceof Directory) {
-            Directory newDir = (Directory) target;
-            return newDir.getElementByPath(newPath);
+        if (!(target instanceof Directory)) {
+            return null;
         }
-        return null;
+        Directory newDir = (Directory) target;
+        return newDir.getElementByPath(newPath);
     }
 
     private Directory getParentByPath(String path) {
