@@ -19,8 +19,10 @@ public abstract class FileSystemElement {
         if (newName == null) {
             return;
         }
-        if (newName.contains("/"))
-            this.name = newName;
+        if (newName.contains("/")) {
+            return;
+        }
+        this.name = newName;
     }
 
     public String getPath() {

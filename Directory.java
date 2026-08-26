@@ -10,23 +10,47 @@ public class Directory extends FileSystemElement {
         this.setParent(parent);
     }
 
-    public boolean insert(String path, FileSystemElement newElement) {
+    public boolean mkdir(String path) {
+        return this.insert(path, new Directory("", null));
+    }
+
+    public boolean touch(String path) {
+        return this.insert(path, new File("", "", null));
+    }
+
+    private boolean insert(String path, FileSystemElement newElement) {
         if (!this.validPath(path)) {
             return false;
         }
-        Directory targetDir = this.getParentByPath(path);
-        if (targetDir == null) {
-            return false;
+
+        name = "";
+        int idx = path.lastIndexOf("/");
+        if (idx == -1) {
+            name = path;
+        }
+        name = path.substring(idx + 1);
+
+        Directory targetDir;
+        if (idx == -1) {
+            targetDir = this;
+        } else {
+            FileSystemElement result = this.getElementByPath(path.substring(0, idx));
+            if (!(result instanceof Directory)) {
+                return false;
+            }
+            targetDir = (Directory) result;
         }
 
         for (FileSystemElement element : targetDir.contents) {
-            if (element.name.equals(newElement.name)) {
+            if (element.name.equals(name)) {
                 return false;
             }
         }
+
+        newElement.setName(name);
+        newElement.setParent(targetDir);
         targetDir.contents.add(newElement);
         return true;
-
     }
 
     // this implementation does not account for removal of the root directory
@@ -57,6 +81,7 @@ public class Directory extends FileSystemElement {
         this.remove(destPath);
         this.insert(destPath, src);
         this.remove(srcPath);
+        src.setName(dest.name);
         return true;
     }
 
@@ -137,24 +162,6 @@ public class Directory extends FileSystemElement {
         }
         Directory newDir = (Directory) target;
         return newDir.getElementByPath(newPath);
-    }
-
-    private Directory getParentByPath(String path) {
-        int idx = path.lastIndexOf("/");
-        if (idx == -1) {
-            return this;
-        }
-
-        FileSystemElement result = getElementByPath(path.substring(0, idx));
-        if (result == null) {
-            return null;
-        }
-
-        if (!(result instanceof Directory)) {
-            return null;
-        }
-        return (Directory) result;
-
     }
 
 }
