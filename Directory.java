@@ -23,31 +23,21 @@ public class Directory extends FileSystemElement {
             return false;
         }
 
-        name = "";
         int idx = path.lastIndexOf("/");
-        if (idx == -1) {
-            name = path;
-        }
-        name = path.substring(idx + 1);
+        String newName = path.substring(idx + 1);
 
-        Directory targetDir;
-        if (idx == -1) {
-            targetDir = this;
-        } else {
-            FileSystemElement result = this.getElementByPath(path.substring(0, idx));
-            if (!(result instanceof Directory)) {
-                return false;
-            }
-            targetDir = (Directory) result;
+        Directory targetDir = this.getParentDirectory(path);
+        if (targetDir == null) {
+            return false;
         }
 
         for (FileSystemElement element : targetDir.contents) {
-            if (element.name.equals(name)) {
+            if (element.name.equals(newName)) {
                 return false;
             }
         }
 
-        newElement.setName(name);
+        newElement.setName(newName);
         newElement.setParent(targetDir);
         targetDir.contents.add(newElement);
         return true;
@@ -65,6 +55,7 @@ public class Directory extends FileSystemElement {
 
         Directory parentDir = (Directory) target.parent;
         parentDir.contents.remove(target);
+        target.setParent(null);
         return target;
     }
 
@@ -72,17 +63,22 @@ public class Directory extends FileSystemElement {
         if (!this.validPath(srcPath) || !this.validPath(destPath)) {
             return false;
         }
+
         FileSystemElement src = this.getElementByPath(srcPath);
-        FileSystemElement dest = this.getElementByPath(destPath);
-        if (src == null || dest == null) {
+        if (src == null) {
             return false;
         }
 
-        this.remove(destPath);
-        this.insert(destPath, src);
+        Directory destParent = this.getParentDirectory(destPath);
+        if (destParent == null) {
+            return false;
+        }
+
+        // both srcPath and destPath's containing directory are confirmed to exist —
+        // safe to start mutating now
         this.remove(srcPath);
-        src.setName(dest.name);
-        return true;
+        this.remove(destPath);
+        return this.insert(destPath, src);
     }
 
     /*
@@ -119,14 +115,13 @@ public class Directory extends FileSystemElement {
     // this method validates and normalizes a path. This is a helper function and
     // not part of the public api.
     private boolean validPath(String path) {
-        if (path == null) {
+        if (path == null || path.isEmpty()) {
             return false;
         }
         // paths may not have leading or trailing slashes
         if (path.charAt(0) == '/' || path.charAt(path.length() - 1) == '/') {
             return false;
         }
-
         return true;
     }
 
@@ -162,6 +157,18 @@ public class Directory extends FileSystemElement {
         }
         Directory newDir = (Directory) target;
         return newDir.getElementByPath(newPath);
+    }
+
+    private Directory getParentDirectory(String path) {
+        int idx = path.lastIndexOf("/");
+        if (idx == -1) {
+            return this;
+        }
+        FileSystemElement result = this.getElementByPath(path.substring(0, idx));
+        if (!(result instanceof Directory)) {
+            return null;
+        }
+        return (Directory) result;
     }
 
 }
