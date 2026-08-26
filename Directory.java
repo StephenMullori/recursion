@@ -4,7 +4,10 @@ public class Directory extends FileSystemElement {
     ArrayList<FileSystemElement> contents;
 
     public Directory(String name, FileSystemElement parent) {
-
+        this.name = "";
+        this.contents = new ArrayList<>();
+        this.setName(name);
+        this.setParent(parent);
     }
 
     public boolean insert(String path, FileSystemElement newElement) {
@@ -77,6 +80,21 @@ public class Directory extends FileSystemElement {
             return false;
         }
         return true;
+    }
+
+    public int size() {
+        if (this.contents.size() == 0) {
+            return 0;
+        }
+        int sum = 0;
+        for (FileSystemElement element : this.contents) {
+            if (element instanceof File) {
+                sum += ((File) element).size();
+            } else {
+                sum += ((Directory) element).size();
+            }
+        }
+        return sum;
     }
 
     // this method validates and normalizes a path. This is a helper function and

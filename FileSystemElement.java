@@ -31,4 +31,6 @@ public abstract class FileSystemElement {
         return this.getParent().getPath() + "/" + this.getName();
     }
 
+    abstract public int size();
+
 }
