@@ -11,8 +11,7 @@ public class Directory extends FileSystemElement {
     }
 
     public boolean insert(String path, FileSystemElement newElement) {
-        path = this.validPath(path);
-        if (path == null) {
+        if (!this.validPath(path)) {
             return false;
         }
         Directory targetDir = this.getParentByPath(path);
@@ -32,8 +31,7 @@ public class Directory extends FileSystemElement {
 
     // this implementation does not account for removal of the root directory
     public FileSystemElement remove(String path) {
-        path = this.validPath(path);
-        if (path == null) {
+        if (!this.validPath(path)) {
             return null;
         }
         FileSystemElement target = this.getElementByPath(path);
@@ -47,12 +45,9 @@ public class Directory extends FileSystemElement {
     }
 
     public boolean move(String srcPath, String destPath) {
-        srcPath = this.validPath(srcPath);
-        destPath = this.validPath(destPath);
-        if (srcPath == null || destPath == null) {
+        if (!this.validPath(srcPath) || !this.validPath(destPath)) {
             return false;
         }
-
         FileSystemElement src = this.getElementByPath(srcPath);
         FileSystemElement dest = this.getElementByPath(destPath);
         if (src == null || dest == null) {
@@ -69,13 +64,12 @@ public class Directory extends FileSystemElement {
      * returns true if the directory contains either a directory or file at the
      * specified relative path
      */
-    public boolean exists(String relativePath) {
-        relativePath = this.validPath(relativePath);
-        if (relativePath == null) {
+    public boolean exists(String path) {
+        if (!this.validPath(path)) {
             return false;
         }
 
-        FileSystemElement result = getElementByPath(relativePath);
+        FileSystemElement result = getElementByPath(path);
         if (result == null) {
             return false;
         }
@@ -99,14 +93,16 @@ public class Directory extends FileSystemElement {
 
     // this method validates and normalizes a path. This is a helper function and
     // not part of the public api.
-    private String validPath(String path) {
-
+    private boolean validPath(String path) {
+        if (path == null) {
+            return false;
+        }
         // paths may not have leading or trailing slashes
         if (path.charAt(0) == '/' || path.charAt(path.length() - 1) == '/') {
-            return null;
+            return false;
         }
 
-        return path;
+        return true;
     }
 
     private FileSystemElement getElementByPath(String path) {
