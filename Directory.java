@@ -74,8 +74,6 @@ public class Directory extends FileSystemElement {
             return false;
         }
 
-        // both srcPath and destPath's containing directory are confirmed to exist —
-        // safe to start mutating now
         this.remove(srcPath);
         this.remove(destPath);
         return this.insert(destPath, src);

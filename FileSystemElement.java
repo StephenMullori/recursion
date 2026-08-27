@@ -19,6 +19,9 @@ public abstract class FileSystemElement {
         if (newName == null) {
             return;
         }
+        if (newName.length() == 0) {
+            return;
+        }
         if (newName.contains("/")) {
             return;
         }

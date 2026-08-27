@@ -18,16 +18,16 @@ was removed from a directory and not yet reinserted anywhere).
 Sets this element's parent.
 
 **`setName(String newName): void`**
-Sets this element's name if and only if `newName` is non-null and does not contain the `/` character
-(since `/` is reserved as the path separator and a name may not span directories). If `newName` is
-`null` or contains `/`, this call is a no-op — the current name is left unchanged. This method does not
-check for uniqueness among siblings.
+Sets this element's name if and only if `newName` is non-null, non-empty, and does not contain the `/`
+character (since `/` is reserved as the path separator and a name may not span directories). If
+`newName` is null, empty, or contains `/`, this call is a no-op — the current name is left unchanged.
+This method does not check for uniqueness among siblings.
 
 **`getPath(): String`**
 Returns the full path from the root to this element, with segments joined by `/`. For an element with
 no parent, this is just its own name; otherwise it's `parent.getPath() + "/" + getName()`.
 
-**`size(): int`** *(abstract)*
+**`size(): int`** _(abstract)_
 Returns the total size of this element. Subclasses define what this means (see below).
 
 ---
@@ -51,6 +51,7 @@ Returns `getContent().length()` — the number of characters currently stored in
 ## `Directory extends FileSystemElement`
 
 **Path conventions**, applying to every method below that takes a `path` argument:
+
 - A path is relative to the directory the method is called on.
 - A valid path is never `null` or empty, and never starts or ends with `/`.
 - Path segments are separated by `/`; each segment names a child at that level of the tree.
@@ -60,7 +61,9 @@ Returns `getContent().length()` — the number of characters currently stored in
 Constructs an empty directory with the given name and parent.
 
 ### `mkdir(String path): boolean`
+
 Creates a new, empty directory at `path`. Returns `true` on success. Fails and makes no changes if:
+
 - `path` is invalid,
 - the directory that would contain it (i.e. everything in `path` before the last `/`) doesn't already
   exist, or
@@ -69,17 +72,21 @@ Creates a new, empty directory at `path`. Returns `true` on success. Fails and m
 `mkdir` never overwrites an existing entry and never creates missing intermediate directories.
 
 ### `touch(String path): boolean`
+
 Creates a new, empty file at `path`. Same failure conditions as `mkdir`: no intermediate-directory
 creation, and fails on any name collision at `path` rather than overwriting or truncating an existing
 file.
 
 ### `remove(String path): FileSystemElement`
+
 Removes and returns the element currently at `path`, or `null` if `path` is invalid or nothing exists
 there. On success, the returned element is fully detached from the tree: it is no longer part of any
 directory's contents, and it has no parent. (Not expected to support removing the root directory
-itself.)
+itself.)Assumes the resolved target has a non-null parent. The only element expected to
+have a null parent is the root directory; removing the root is out of scope and not guarded against.
 
 ### `move(String srcPath, String destPath): boolean`
+
 Moves the element at `srcPath` to `destPath`, renaming it to match `destPath`'s last segment. Returns
 `true` on success.
 
@@ -95,9 +102,24 @@ Moves the element at `srcPath` to `destPath`, renaming it to match `destPath`'s 
 - Not guarded against: moving a directory into one of its own descendants.
 
 ### `exists(String path): boolean`
+
 Returns `true` if `path` resolves to an existing file or directory relative to this directory, `false`
 otherwise (including for invalid paths).
 
 ### `size(): int`
+
 Returns the total size of this directory: the sum of `size()` over all of its contents, recursively (a
 subdirectory contributes the sum of everything inside it).
+
+## Known limitations (out of scope for this assignment)
+
+This assignment is focused on recursive tree traversal (getElementByPath, insert,
+getParentDirectory, size), not on object lifecycle or tree-invariant enforcement. The following
+gaps are real but intentionally not addressed here:
+
+- Constructors don't attach to their parent. new File(name, content, someDir) sets the child's parent pointer but does not add the child to someDir's contents. This means a constructed-but-unattached element has a parent that doesn't actually list it — someDir.size() and someDir.exists(name) won't see it, but getPath() will still walk through someDir as if it were attached.
+
+- setParent does no bookkeeping. It only reassigns the pointer; it doesn't remove the element from its old parent's contents or add it to the new parent's contents. Combined with the above, it's possible to construct inconsistent tree states (an element listed in two parents' contents, or in none).
+
+- No enforced invariant tying contents membership to parent. mkdir/touch/move/remove all maintain this pairing correctly internally, but nothing prevents code outside Directory from
+  breaking it via the public setParent/setName setters. Open design question, unresolved: if constructors were made to self-attach, what should happen on a name collision with an existing sibling? (Throw, silently skip, overwrite — undecided.)
