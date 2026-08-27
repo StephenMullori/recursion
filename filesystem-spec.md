@@ -15,13 +15,13 @@ Returns this element's parent, or `null` if it has none (either because it's the
 was removed from a directory and not yet reinserted anywhere).
 
 **`setParent(FileSystemElement newParent): void`**
-Sets this element's parent.
+Sets this element's parent. This method need not check for uniqueness among sibling names.
 
 **`setName(String newName): void`**
 Sets this element's name if and only if `newName` is non-null, non-empty, and does not contain the `/`
 character (since `/` is reserved as the path separator and a name may not span directories). If
 `newName` is null, empty, or contains `/`, this call is a no-op — the current name is left unchanged.
-This method does not check for uniqueness among siblings.
+This method need not check for uniqueness among siblings.
 
 **`getPath(): String`**
 Returns the full path from the root to this element, with segments joined by `/`. For an element with
